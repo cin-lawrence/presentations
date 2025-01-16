@@ -3,7 +3,10 @@ title: typing in Python
 sub_title: Getting started with typing!
 author: Lawrence (lawrence@cinnamon.is)
 ---
-#  why typing? (*motivation*)
+Why typing?
+===
+
+---
 <!-- column_layout: [1, 1, 1] -->
 <!-- column: 0 -->
 ```py
@@ -37,95 +40,153 @@ def find_center(coords: Rectangle]) -> Point:
 <!-- reset_layout -->
 ---
 <!-- end_slide -->
-#  PERIOD
+PERIOD
+===
+
+---
 ---
 <!-- end_slide -->
 
-#  typing basic
+typing basic
+===
+
 ---
-## Primitives
-## Type alias
-## TypedDict
-## Stub
+# Primitives
+# Type alias
+# TypedDict
+# Stub
+---
 <!-- end_slide -->
 
-#  Changes since 3.10, 3.11, 3.12
+Changes since 3.10, 3.11, 3.12
+===
+
 ---
 
-## 3.10
+# 3.10
 - Union syntax (|)
 - TypeGuard (later)
 - ParamSpec (later)
 - TypeVarTuple (later)
 
-## 3.11
+# 3.11
 - Self
 - Required / NotRequired
 - LiteralString
 
-## 3.12
+# 3.12
 - New generic syntax
 - New type alias syntax
 -
-<!-- end_slide -->
 
-#  Functional programming support
----
-
-## ParamSpec
-<!-- end_slide -->
-
-#  OOP support
 ---
 <!-- end_slide -->
 
-#  Polymorphism
+Functional programming support
+===
+
+---
+
+# ParamSpec
+
 ---
 <!-- end_slide -->
 
-#  Liskov
+OOP support
+===
+
+---
+
 ---
 <!-- end_slide -->
 
-#  Generic
+Polymorphism
+===
+
+---
+
 ---
 <!-- end_slide -->
 
-#  TypeVar, TypeVarTuple, ParamSpec
+Liskov
+===
+
+---
+
 ---
 <!-- end_slide -->
 
-#  collections.abc types
----
-## Sequence
-## Mapping
-## [Async]Generator
-<!-- end_slide -->
+Generic
+===
 
-#  Covariant, Contravariant, Invariant
+---
+
 ---
 <!-- end_slide -->
 
-#  Getting started with typing
+TypeVar, TypeVarTuple, ParamSpec
+===
+
 ---
-## Tools for the job
+
+---
+<!-- end_slide -->
+
+collections.abc types
+===
+
+---
+# Sequence
+# Mapping
+# [Async]Generator
+
+---
+<!-- end_slide -->
+
+Covariant, Contravariant, Invariant
+===
+
+---
+
+---
+<!-- end_slide -->
+
+Getting started with typing
+===
+
+---
+# Tools for the job
 - python>=3.11
 - mypy
 - ruff
 - pyright
-<!-- end_slide -->
 
-#  Mindset of using typing
 ---
-## py.typed
 <!-- end_slide -->
 
-#  mypy terminology
+Mindset of using typing
+===
+
 ---
-## TypeGuard
+# py.typed
+
+---
 <!-- end_slide -->
 
-#  HKT
+mypy terminology
+===
+
+---
+# TypeGuard
+
+---
+<!-- end_slide -->
+
+HKT
+===
+
+---
+
 ---
 <!-- end_slide -->
 
