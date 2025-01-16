@@ -43,29 +43,51 @@ def find_center(coords: Rectangle]) -> Point:
 
 #  typing basic
 ---
+## Primitives
+## Type alias
+## TypedDict
+## Stub
 <!-- end_slide -->
 
-#  changes since 3.10, 3.11, 3.12
+#  Changes since 3.10, 3.11, 3.12
 ---
+
+## 3.10
+- Union syntax (|)
+- TypeGuard (later)
+- ParamSpec (later)
+- TypeVarTuple (later)
+
+## 3.11
+- Self
+- Required / NotRequired
+- LiteralString
+
+## 3.12
+- New generic syntax
+- New type alias syntax
+-
 <!-- end_slide -->
 
-#  functional support
+#  Functional programming support
 ---
+
+## ParamSpec
 <!-- end_slide -->
 
 #  OOP support
 ---
 <!-- end_slide -->
 
-#  polymorphism
+#  Polymorphism
 ---
 <!-- end_slide -->
 
-#  liskov
+#  Liskov
 ---
 <!-- end_slide -->
 
-#  generic
+#  Generic
 ---
 <!-- end_slide -->
 
@@ -75,22 +97,32 @@ def find_center(coords: Rectangle]) -> Point:
 
 #  collections.abc types
 ---
+## Sequence
+## Mapping
+## [Async]Generator
 <!-- end_slide -->
 
-#  covariant, contravariant
+#  Covariant, Contravariant, Invariant
 ---
 <!-- end_slide -->
 
-#  getting started with typing
+#  Getting started with typing
 ---
+## Tools for the job
+- python>=3.11
+- mypy
+- ruff
+- pyright
 <!-- end_slide -->
 
-#  mindset of using typing
+#  Mindset of using typing
 ---
+## py.typed
 <!-- end_slide -->
 
-#  some mypy terms
+#  mypy terminology
 ---
+## TypeGuard
 <!-- end_slide -->
 
 #  HKT
