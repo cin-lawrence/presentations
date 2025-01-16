@@ -1,0 +1,32 @@
+
+---
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-added-large-files
+        args:
+          - --maxkb=1000
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.3.0
+    hooks:
+      - id: codespell
+        args:
+          - --ignore-words-list=NIN,Nin,braket,bu,nin
+  - repo: https://github.com/igorshubovych/markdownlint-cli
+    rev: v0.43.0
+    hooks:
+      - id: markdownlint
+        name: markdownlint-fix
+        description: Fixes the style of Markdown/Commonmark files.
+        entry: markdownlint --fix
+        language: node
+        types:
+          - markdown
+        args:
+          - --disable
+          - MD013
