@@ -201,7 +201,17 @@ Changes since 3.10, 3.11, 3.12
 
 # 3.12
 - New generic syntax
+```rust +line_numbers
+class Veggie: ...
+
+class Herbivore[VegT: Veggie]:
+    def chew(self, veg: VegT) -> None: ...
+```
 - New type alias syntax
+
+```rust +line_numbers
+type Number = int | float
+```
 
 # Honorable mentions
 - Annotated
@@ -218,7 +228,7 @@ Generic
 ```rust +line_numbers
 class Stack(Generic[T]):
     def __init__(self) -> None:
-        self._items: List[T] = []
+        self._items: list[T] = []
 
     def push(self, item: T) -> None:
         """Push an item onto the stack."""
@@ -257,20 +267,6 @@ class Stack(Generic[T]):
 - Callable[[T1, T2, ...], RT]
 - Coroutine[Any, Any, T]
 - [Async]Generator[T]
-
----
-<!-- end_slide -->
-
-Functional programming support
-===
----
-# Callable
-
-# ParamSpec
-
-# Overload
-
-# Concatenate
 
 ---
 <!-- end_slide -->
@@ -421,18 +417,9 @@ class ExecutorFactory:
 ---
 <!-- end_slide -->
 
-Liskov
-===
-
----
-
----
-<!-- end_slide -->
-
 
 TypeVar, TypeVarTuple, ParamSpec, Concatenate
 ===
-
 ---
 # TypeVar
 
@@ -445,21 +432,135 @@ TypeVar, TypeVarTuple, ParamSpec, Concatenate
 # Concatenate
 
 ---
+```rust +line_numbers
+from typing import ParamSpec, TypeVar
+
+P = ParamSpec("P")
+T = TypeVar("T")
+RT = TypeVar("RT")
+FileStorageT = TypeVar("FileStorageT", bound="IFileStorage[Any]")
+
+def auto_catch_native_exc(
+    func: Callable[Concatenate[FileStorageT, P], RT],
+) -> Callable[Concatenate[FileStorageT, P], RT]:
+    @wraps(func)
+    def wrapper(
+        self: FileStorageT,
+        /,
+        *args: P.args,
+        **kwargs: P.kwargs,
+    ) -> RT:
+        try:
+            return func(self, *args, **kwargs)
+        except ValueError as value_error:
+            raise InvalidArgumentsError(value_error) from value_error
+        except FileStorageError:
+            raise
+        except Exception as exc:
+            logger.exception("Unexpected error occurred")
+            raise OperationalError(exc) from exc
+
+    return wrapper
+```
+
+---
 <!-- end_slide -->
 
 mypy terminology
 ===
-
 ---
 # Type narrowing
 - isinstance
 - issubclass
 - type
 - callable
+
 ## TypeGuard
+```rust +line_numbers
+from typing import TypeGuard
+
+# TypeGuard function to check if an object is an int
+def is_list_of_ints(items: list[object]) -> TypeGuard[list[int]]:
+    return all(isinstance(item, int) for item in items)
+
+# Example function that processes a list, narrowing its type
+def process_items(items: list[object]) -> None:
+    if is_list_of_ints(items):
+        # The type of `items` is now narrowed to `list[int]` within this block
+        total = sum(items)  # Safe because items are guaranteed to be integers
+        print(f"Sum of integers: {total}")
+    else:
+        # Here, `items` is still `list[object]`
+        print("The list is not a list of integers.")
+```
+
 ## TypeIs
+TypeIs narrows the type in both the if and else branches, whereas TypeGuard narrows only in the if branch.
+```rust +line_numbers
+from typing import assert_type, final, TypeIs
+
+class Parent: pass
+class Child(Parent): pass
+@final
+class Unrelated: pass
+
+def is_parent(val: object) -> TypeIs[Parent]:
+    return isinstance(val, Parent)
+
+def run(arg: Child | Unrelated):
+    if is_parent(arg):
+        # Type of ``arg`` is narrowed to the intersection
+        # of ``Parent`` and ``Child``, which is equivalent to
+        # ``Child``.
+        assert_type(arg, Child)
+    else:
+        # Type of ``arg`` is narrowed to exclude ``Parent``,
+        # so only ``Unrelated`` is left.
+        assert_type(arg, Unrelated)
+```
+---
+<!-- end_slide -->
+
+mypy terminology (cont.)
+===
+---
+
 # overload
+
 # Final and final
+```rust +line_numbers
+from typing import final
+
+@final
+class Settings:
+    """A class representing application settings that must not be subclassed."""
+    def __init__(self, app_name: str, version: str):
+        self.app_name = app_name
+        self.version = version
+
+    def get_details(self) -> str:
+        return f"{self.app_name} v{self.version}"
+
+# Attempting to subclass Settings will raise a type checker error
+# class AdvancedSettings(Settings):  # This will fail with tools like mypy or Pyright
+#     pass
+
+class Config:
+    """A class representing configurable properties."""
+
+    @final
+    def get_value(self, key: str) -> str:
+        """This method must not be overridden."""
+        return f"Fetching value for {key}"
+
+class MyConfig(Config):
+    # This will cause an error with static type checkers
+    # def get_value(self, key: str) -> str:
+    #     return f"Overridden value for {key}"
+    def some_other_method(self) -> None:
+        print("This is allowed because it doesn't override get_value.")
+```
+
 # reveal_type
 
 ---
@@ -467,7 +568,6 @@ mypy terminology
 
 Covariant, Contravariant, Invariant
 ===
-
 ---
 # Covariant
 
@@ -514,13 +614,115 @@ my_circles[-1].rotate()  # ...this will fail, since my_circles[0] is now a Shape
 
 ## Sequence vs. list
 
+---
+<!-- end_slide -->
+
+Liskov
+===
+---
+# The Liskov Substitution Principle (LSP)
+states that objects of a superclass should be replaceable with objects of a subclass without altering the correctness of the program. In Python, we can demonstrate this principle with typing by using Protocol to define a contract for subclasses to follow.
+
+---
+```rust +line_numbers
+from typing import Protocol, TypeVar
+
+# Base class for all animals
+class Animal:
+    def speak(self) -> str:
+        return "Some generic animal sound"
+
+# Subclass: Dog
+class Dog(Animal):
+    def speak(self) -> str:
+        return "Bark"
+
+# Subclass: Cat
+class Cat(Animal):
+    def speak(self) -> str:
+        return "Meow"
+
+# Protocol for a Trainer
+class Trainer:
+    def train(self, animal: Animal) -> str:
+        """Train the given animal"""
+        raise NotImplementedError
+
+# Specialized Trainer for Dogs
+class DogTrainer(Trainer):
+    def train(self, animal: Dog) -> str:  # error [override]
+        return f"Training a dog to bark: {animal.speak()}"
+
+# Specialized Trainer for Dogs
+class CatTrainer(Trainer):
+    def train(self, animal: Cat) -> str:  # error [override]
+        return f"Training a cat to meow: {animal.speak()}"
+
+# Function that accepts a Trainer of any type
+def start_training(trainer: Trainer[Animal], animals: list[Animal]) -> None:
+    for animal in animals:
+        print(trainer.train(animal))
+```
+---
+```
+error: Argument 1 of "train" is incompatible with supertype "Trainer"; supertype defines the argument type as "Animal"  [override]
+note: This violates the Liskov substitution principle
+note: See https://mypy.readthedocs.io/en/stable/common_issues.html#incompatible-overrides
+```
+---
+<!-- end_slide -->
+
+Liskov (Generic)
+===
+---
+```rust +line_numbers
+from typing import Protocol, TypeVar
+
+# Base class for all animals
+class Animal:
+    def speak(self) -> str:
+        return "Some generic animal sound"
+
+# Subclass: Dog
+class Dog(Animal):
+    def speak(self) -> str:
+        return "Bark"
+
+# Subclass: Cat
+class Cat(Animal):
+    def speak(self) -> str:
+        return "Meow"
+
+# Define a contravariant TypeVar
+T = TypeVar('T', bound=Animal, contravariant=True)
+
+# Protocol for a Trainer
+class Trainer(Protocol[T]):
+    def train(self, animal: T) -> str:
+        """Train the given animal"""
+        raise NotImplementedError
+
+# Specialized Trainer for Dogs
+class DogTrainer(Trainer[Dog]):
+    def train(self, animal: Dog) -> str:
+        return f"Training a dog to bark: {animal.speak()}"
+
+# Specialized Trainer for Dogs
+class CatTrainer(Trainer[Cat]):
+    def train(self, animal: Cat) -> str:
+        return f"Training a cat to meow: {animal.speak()}"
+
+# Function that accepts a Trainer of any type
+def start_training(trainer: Trainer[Animal], animals: list[Animal]) -> None:
+    for animal in animals:
+        print(trainer.train(animal))
+```
 
 ---
 <!-- end_slide -->
 
 Getting started with typing
 ===
-
 ---
 # Tools for the job
 - python>=3.11
@@ -535,6 +737,7 @@ Getting started with typing
 # Mindset of using typing
 
 ## py.typed
+Placed in the "module folder" to indicate that typing in the module can be used for type-checking.
 
 ## Write all functions with typing
 
@@ -556,10 +759,50 @@ Getting started with typing
 
 HKT
 ===
+---
+Polymorphism abstracts types, just as functions abstract values. Higher-kinded
+polymorphism takes things a step further, abstracting both types and type constructors,
 
+# Examples
+<!-- column_layout: [1, 2, 1] -->
+<!-- column: 0 -->
+<!-- column: 1 -->
+---
+```rust +line_numbers
+from typing import Iterable
+
+T = TypeVar('T', bound=Iterable)
+
+def stringify_iterable_items(arg: T[int]) -> T[str]:
+    return type(arg)(str(item) for item in arg)
+```
 ---
 
+```rust +line_numbers
+class Language(Enum): ...
+
+class Params[LanguageT: Language]:
+    target_language: LanguageT
+
+class Tasks2[LanguageT: Language, ParamsListT: list[Params[Language]]]:
+    source_language: LanguageT
+    params: ParamsListT
+```
 ---
+```rust +line_numbers
+# The following generates no compiler error, but a type checker
+# should generate an error because an upper bound type must be concrete,
+# and ``Sequence[S]`` is generic. Future extensions to the type system may
+# eliminate this limitation.
+class ClassA[S, T: Sequence[S]]: ...
+
+# The following generates no compiler error, because the bound for ``S``
+# is lazily evaluated. However, type checkers should generate an error.
+class ClassB[S: Sequence[T], T]: ...
+```
+---
+<!-- column: 2 -->
+<!-- reset_layout -->
 <!-- end_slide -->
 
 <!-- jump_to_middle -->
