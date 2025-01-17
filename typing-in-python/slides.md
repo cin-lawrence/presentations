@@ -9,6 +9,16 @@ Why typing?
 <!-- column: 0 -->
 <!-- column: 1 -->
 ---
+# Philosophy
+
+## Python
+
+## We are developers, not coders
+
+## Robustness and consistency
+
+---
+
 Naive
 ```rust +line_numbers
 def find_center(coords):
@@ -49,6 +59,33 @@ PERIOD
 ===
 ---
 # auto-completion
+With proper typing, you should be PERIOD-able.
+
+```
+class AzureOpenAIChatModel:
+    async def achat(
+        self,
+        message: UserMessage,
+        history: Sequence[Message] | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> AssistantMessage:
+        self.________________________
+            |achat                  m|
+            |astream                m|
+            |async_client           v|
+            |chat                   m|
+            |cost                   v|
+            |from_deployment        m|
+            |gather_context         m|
+            |model                  p|
+            |settings               v|
+            |sync_client            v|
+            |to_cost                m|
+            |to_openai_chat_message m|
+            |_generate_messages     m|
+            |_model                 v|
+```
 
 # typing is another kind of system
 
@@ -65,6 +102,13 @@ typing basic
 ===
 ---
 # Primitives
+- numeric: int, float, complex
+- sequence: str, list, tuple, range
+- binary: bytes, bytearry, memoryview
+- set: set, frozen
+- mapping: dict
+- None: None
+- others: callable, iterator, generator, coroutine, ...
 
 # Type alias
 ```rust +line_numbers
@@ -117,6 +161,28 @@ class Spaceship:
 ---
 <!-- end_slide -->
 
+collections' types
+===
+---
+Most common types only
+
+# collections.abc
+## Iterable
+## Sequence
+## Mapping
+## [Async]Iterator
+## [Async]Generator
+
+# collections
+## DefaultDict
+## OrderedDict
+## ChainMap
+## Counter
+## Deque
+
+---
+<!-- end_slide -->
+
 Changes since 3.10, 3.11, 3.12
 ===
 ---
@@ -149,6 +215,35 @@ Generic
 ===
 ---
 # Why Generic?
+```rust +line_numbers
+class Stack(Generic[T]):
+    def __init__(self) -> None:
+        self._items: List[T] = []
+
+    def push(self, item: T) -> None:
+        """Push an item onto the stack."""
+        self._items.append(item)
+
+    def pop(self) -> T:
+        """Pop an item off the stack."""
+        if not self._items:
+            raise IndexError("pop from an empty stack")
+        return self._items.pop()
+
+    def peek(self) -> T:
+        """Peek at the top item without removing it."""
+        if not self._items:
+            raise IndexError("peek from an empty stack")
+        return self._items[-1]
+
+    def is_empty(self) -> bool:
+        """Check if the stack is empty."""
+        return not self._items
+```
+
+## Generic in other languages
+- Compiling language
+- Scripting language
 
 # Built-in generic types
 - list[T]
@@ -160,6 +255,7 @@ Generic
 - Mapping[K, V]
 - type[C]
 - Callable[[T1, T2, ...], RT]
+- Coroutine[Any, Any, T]
 - [Async]Generator[T]
 
 ---
@@ -167,7 +263,6 @@ Generic
 
 Functional programming support
 ===
-
 ---
 # Callable
 
@@ -182,8 +277,16 @@ Functional programming support
 
 OOP support
 ===
-
 ---
+# @staticmethod and @classmethod
+
+# @property & @property.setter
+
+# @override and @overload
+
+# ClassVar
+
+# Final
 
 ---
 <!-- end_slide -->
@@ -192,18 +295,128 @@ Interface
 ===
 
 ---
+# Motivation
+- Coupling between base class and derived class
+- Circular import
+
 # Interface in compiling languages
+- Single inheritance
+- Single inheritance + multiple implementations (interfaces)
+- Multiple inheritances
+---
+<!-- end_slide -->
+
+Interface (Example)
+===
+
 # Protocol
+```rust +line_numbers
+class IChatModel(Protocol):
+    async def achat(
+        self,
+        message: UserMessage,
+        history: Sequence[Message] | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> AssistantMessage: ...
+
+    async def astream(
+        self,
+        message: UserMessage,
+        history: Sequence[Message] | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> AsyncGenerator[AssistantMessage, None]: ...
+```
+
 ## Subclassing
-# Implicit subtype
+```rust +line_numbers
+class BaseChatModel[ModelT]:
+    @property
+    def model(self) -> ModelT:
+        raise NotImplementedError
+
+    async def achat(
+        self,
+        message: UserMessage,
+        history: Sequence[Message] | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> AssistantMessage:
+        raise NotImplementedError
+
+    async def astream(
+        self,
+        message: UserMessage,
+        history: Sequence[Message] | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> AsyncGenerator[AssistantMessage, None]:
+        raise NotImplementedError
+
+class OpenAIChatModel(BaseChatModel[AzureOpenAI]):
+    def __init__(self, model: AzureOpenAI) -> None:
+        self.model: AzureOpenAI = model
+
+    async def achat(
+        self,
+        message: UserMessage,
+        history: Sequence[Message] | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> AssistantMessage: ...
+
+    async def astream(
+        self,
+        message: UserMessage,
+        history: Sequence[Message] | None = None,
+        *args: Any,
+        **kwargs: Any,
+    ) -> AsyncGenerator[AssistantMessage, None]: ...
+```
+
+## Implicit subtype
 
 ---
 <!-- end_slide -->
 
 Polymorphism
 ===
-
 ---
+```rust +line_numbers
+from concurrent.futures import (
+    Executor,
+    ProcessPoolExecutor,
+    ThreadPoolExecutor,
+)
+from typing import Literal, overload
+
+
+class ExecutorFactory:
+    @overload
+    def create(
+        self,
+        executor_type: Literal["thread"],
+    ) -> ThreadPoolExecutor: ...
+
+    @overload
+    def create(
+        self,
+        executor_type: Literal["process"],
+    ) -> ProcessPoolExecutor: ...
+
+    def create(
+        self,
+        executor_type: Literal["thread", "process"],
+    ) -> Executor:
+        match executor_type:
+            case "thread":
+                return ThreadPoolExecutor()
+            case "process":
+                return ProcessPoolExecutor()
+            case _:
+                raise RuntimeError("invalid executor type")
+```
 
 ---
 <!-- end_slide -->
@@ -234,21 +447,20 @@ TypeVar, TypeVarTuple, ParamSpec, Concatenate
 ---
 <!-- end_slide -->
 
-collections.abc types
+mypy terminology
 ===
 
 ---
-# collections.abc
-## Sequence
-## Mapping
-## [Async]Generator
-
-# collections
-## DefaultDict
-## OrderedDict
-## ChainMap
-## Counter
-## Deque
+# Type narrowing
+- isinstance
+- issubclass
+- type
+- callable
+## TypeGuard
+## TypeIs
+# overload
+# Final and final
+# reveal_type
 
 ---
 <!-- end_slide -->
@@ -320,33 +532,24 @@ Getting started with typing
 - [Official mypy cheatsheet](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html)
 
 ---
-<!-- end_slide -->
+# Mindset of using typing
 
-Mindset of using typing
-===
+## py.typed
 
----
-# py.typed
-# Write all functions with typing
-# Satisfy both worlds
+## Write all functions with typing
 
----
-<!-- end_slide -->
+## Think in OOP
 
-mypy terminology
-===
+## Satisfy both worlds
 
 ---
-# Type narrowing
-- isinstance
-- issubclass
-- type
-- callable
-## TypeGuard
-## TypeIs
-# overload
-# Final and final
-# reveal_type
+# Handling legacy code
+
+## Start small
+
+## Gradual adoption
+
+## Design concern & improvement loop
 
 ---
 <!-- end_slide -->
