@@ -806,7 +806,7 @@ class ClassB[S: Sequence[T], T]: ...
 <!-- end_slide -->
 
 <!-- jump_to_middle -->
-Examples and Demos
+Examples, Demos and FAQs
 ---
 <!-- end_slide -->
 
